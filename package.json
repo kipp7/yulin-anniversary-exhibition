@@ -1,0 +1,29 @@
+{
+  "name": "yulin-anniversary-exhibition",
+  "version": "1.0.0",
+  "description": "玉林师范学院80周年校庆虚拟展览系统 - 八秩芳华·数字时光馆",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.160.0",
+    "gsap": "^3.12.5",
+    "howler": "^2.2.4"
+  },
+  "devDependencies": {
+    "vite": "^5.0.10"
+  },
+  "keywords": [
+    "玉林师范学院",
+    "校庆",
+    "3D展览",
+    "Three.js",
+    "虚拟展馆"
+  ],
+  "author": "参赛团队",
+  "license": "MIT"
+}
+

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八秩芳华·数字时光馆 - 玉林师范学院80周年校庆</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease;
+        }
+        
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo-text {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: shine 3s infinite;
+        }
+        
+        .subtitle {
+            font-size: 24px;
+            color: #fff;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+        
+        .anniversary {
+            font-size: 72px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+        
+        @keyframes shine {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+        
+        .progress-container {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        
+        .loading-text {
+            color: #fff;
+            margin-top: 20px;
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        #ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+        }
+        
+        .school-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .controls-hint {
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+        
+        .navigation-menu {
+            position: absolute;
+            left: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: auto;
+        }
+        
+        .nav-button {
+            display: block;
+            padding: 16px 28px;
+            margin: 12px 0;
+            background: linear-gradient(135deg, rgba(200, 16, 46, 0.85) 0%, rgba(139, 0, 0, 0.75) 100%);
+            border: 2px solid #ffd700;
+            border-radius: 12px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 17px;
+            font-weight: 600;
+            text-align: left;
+            min-width: 200px;
+            backdrop-filter: blur(15px);
+            box-shadow: 
+                0 4px 15px rgba(200, 16, 46, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+        
+        /* 按钮内部高光效果 */
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .nav-button:hover::before {
+            left: 100%;
+        }
+        
+        .nav-button:hover {
+            background: linear-gradient(135deg, rgba(200, 16, 46, 0.95) 0%, rgba(139, 0, 0, 0.85) 100%);
+            border-color: #ffed4e;
+            transform: translateX(8px) scale(1.03);
+            box-shadow: 
+                0 8px 25px rgba(200, 16, 46, 0.6),
+                0 0 20px rgba(255, 215, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-button.active {
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            border-color: #ffed4e;
+            box-shadow: 
+                0 6px 20px rgba(200, 16, 46, 0.7),
+                0 0 30px rgba(255, 215, 0, 0.5),
+                inset 0 0 20px rgba(255, 215, 0, 0.15);
+            transform: translateX(5px);
+        }
+        
+        .nav-button.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #ffd700, #ffed4e);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        
+        .info-panel {
+            position: fixed;
+            right: 10px;
+            bottom: 30px;
+            max-width: 520px;
+            max-height: calc(100vh - 100px);
+            background: linear-gradient(135deg, 
+                rgba(30, 30, 40, 0.92) 0%, 
+                rgba(20, 20, 30, 0.90) 100%);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            padding-top: 35px;
+            border-radius: 16px;
+            border: 2px solid #ffd700;
+            color: #fff;
+            pointer-events: auto;
+            display: none;
+            overflow-y: auto;
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.6),
+                0 0 25px rgba(255, 215, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+        
+        /* 顶部装饰金条 */
+        .info-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                #ffd700 0%, 
+                #ffed4e 50%, 
+                #ffd700 100%);
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.6);
+        }
+        
+        .info-panel.show {
+            display: block;
+            animation: slideInBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        /* 美化滚动条 - 金色主题 */
+        .info-panel::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        .info-panel::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        
+        .info-panel::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #ffd700, #ffaa00);
+            border-radius: 5px;
+            border: 2px solid rgba(200, 16, 46, 0.5);
+        }
+        
+        .info-panel::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #ffed4e, #ffd700);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        @keyframes slideInBounce {
+            0% {
+                opacity: 0;
+                transform: translateX(100px) scale(0.9);
+            }
+            60% {
+                opacity: 1;
+                transform: translateX(-10px) scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        
+        .info-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #ffd700;
+            text-shadow: 
+                0 2px 10px rgba(255, 215, 0, 0.5),
+                0 0 20px rgba(255, 215, 0, 0.3);
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            letter-spacing: 1px;
+        }
+        
+        .info-content {
+            font-size: 15px;
+            line-height: 1.9;
+            opacity: 0.95;
+            color: #fff;
+        }
+        
+        .close-button {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border: 2px solid #ffd700;
+            background: linear-gradient(135deg, 
+                rgba(200, 16, 46, 0.8) 0%, 
+                rgba(139, 0, 0, 0.8) 100%);
+            color: #ffd700;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close-button:hover {
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            border-color: #ffed4e;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 
+                0 4px 15px rgba(255, 215, 0, 0.4),
+                0 0 20px rgba(255, 215, 0, 0.3);
+            color: #ffed4e;
+        }
+        
+        .close-button:active {
+            transform: rotate(90deg) scale(0.95);
+        }
+        
+        #audio-control {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(200, 16, 46, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            border: 2px solid #ffd700;
+            border-radius: 25px;
+            color: #ffd700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 999;
+        }
+        
+        #audio-control:hover {
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        /* 音乐启动引导界面 */
+        #music-start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease;
+        }
+        
+        #music-start-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .music-start-card {
+            background: linear-gradient(135deg, rgba(200, 16, 46, 0.9) 0%, rgba(139, 0, 0, 0.9) 100%);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 50px 60px;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(255, 215, 0, 0.3);
+            animation: musicCardPulse 2s infinite;
+            max-width: 500px;
+        }
+        
+        @keyframes musicCardPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 50px rgba(255, 215, 0, 0.3); }
+            50% { transform: scale(1.02); box-shadow: 0 15px 60px rgba(255, 215, 0, 0.5); }
+        }
+        
+        .music-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: musicIconFloat 1.5s infinite ease-in-out;
+        }
+        
+        @keyframes musicIconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .music-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .music-subtitle {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .music-start-button {
+            padding: 15px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #8b0000;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        .music-start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+            background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+        }
+        
+        .music-start-button:active {
+            transform: translateY(-1px);
+        }
+        
+        .music-hint {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 20px;
+        }
+        
+        /* 致谢名单页面样式 */
+        .credits-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 3000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 20px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .credits-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .credits-container {
+            max-width: 900px;
+            width: 100%;
+            background: linear-gradient(135deg, rgba(200, 16, 46, 0.95) 0%, rgba(139, 0, 0, 0.9) 100%);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 40px;
+            padding-top: 100px;
+            margin-top: 80px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: creditsSlideIn 0.5s ease-out;
+        }
+        
+        @keyframes creditsSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .credits-close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ffd700;
+            background: rgba(139, 0, 0, 0.8);
+            color: #ffd700;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .credits-close-button:hover {
+            background: #c8102e;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .credits-content {
+            color: #fff;
+        }
+        
+        .credits-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .credits-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .credits-subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            opacity: 0.9;
+        }
+        
+        .credits-section {
+            margin-bottom: 35px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffed4e;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #ffd700;
+        }
+        
+        .credit-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border-left: 3px solid #ffd700;
+            transition: all 0.3s ease;
+        }
+        
+        .credit-item:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateX(5px);
+            border-left-width: 5px;
+        }
+        
+        .credit-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+        
+        .credit-value {
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        
+        .credit-desc {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+        
+        .credits-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255, 215, 0, 0.3);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .credits-footer p {
+            margin: 8px 0;
+        }
+        
+        .credits-hint {
+            font-size: 12px;
+            color: rgba(255, 215, 0, 0.7);
+            margin-top: 15px;
+        }
+        
+        /* 致谢入口按钮 */
+        .credits-trigger {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(200, 16, 46, 0.9) 0%, rgba(139, 0, 0, 0.8) 100%);
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 999;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .credits-trigger:hover {
+            background: linear-gradient(135deg, #c8102e 0%, #8b0000 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+    </style>
+</head>
+<body>
+    <!-- 加载屏幕 -->
+    <div id="loading-screen">
+        <div class="logo-container">
+            <div class="logo-text">玉林师范学院</div>
+            <div class="anniversary">80周年</div>
+            <div class="subtitle">八秩芳华 · 数字时光馆</div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="loading-text" id="loading-text">正在加载资源...</div>
+    </div>
+
+    <!-- 音乐启动引导界面 -->
+    <div id="music-start-overlay" class="hidden">
+        <div class="music-start-card">
+            <div class="music-icon">🎵</div>
+            <div class="music-title">开启音乐之旅</div>
+            <div class="music-subtitle">聆听玉林师范学院校歌<br>沉浸式体验80年芳华</div>
+            <button class="music-start-button" onclick="startMusic()">
+                🎶 开始播放
+            </button>
+            <div class="music-hint">点击按钮启动背景音乐</div>
+        </div>
+    </div>
+
+    <!-- 3D画布容器 -->
+    <div id="canvas-container"></div>
+
+    <!-- UI 覆盖层 -->
+    <div id="ui-overlay">
+        <!-- 顶部栏 -->
+        <div class="top-bar">
+            <div class="school-name">
+                🎓 玉林师范学院 80周年校庆
+            </div>
+            <div class="controls-hint">
+                🖱️ 鼠标拖拽旋转 | 滚轮缩放 | 点击交互
+            </div>
+        </div>
+
+        <!-- 导航菜单 -->
+        <div class="navigation-menu">
+            <button class="nav-button active" data-zone="welcome">欢迎大厅</button>
+            <button class="nav-button" data-zone="history">历史长廊</button>
+            <button class="nav-button" data-zone="buildings">建筑巡礼</button>
+            <button class="nav-button" data-zone="achievements">育人成果</button>
+            <button class="nav-button" data-zone="culture">文化传承</button>
+            <button class="nav-button" data-zone="data">数据之光</button>
+            <button class="nav-button" data-zone="memories">影像记忆</button>
+            <button class="nav-button" data-zone="messages">祝福留言</button>
+        </div>
+
+        <!-- 信息面板 -->
+        <div class="info-panel" id="info-panel">
+            <button class="close-button" onclick="closeInfoPanel()">×</button>
+            <div class="info-title" id="info-title">标题</div>
+            <div class="info-content" id="info-content">内容</div>
+        </div>
+
+        <!-- 音频控制 -->
+        <div id="audio-control">
+            🔇 校歌：未播放
+        </div>
+    </div>
+
+    <!-- 致谢入口按钮 -->
+    <button class="credits-trigger" onclick="window.showCredits()" title="查看致谢名单（快捷键：F1 或 C）">
+        致谢名单
+    </button>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
+
